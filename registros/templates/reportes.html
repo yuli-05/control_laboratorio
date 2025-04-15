@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Reporte de uso de laboratorios</h2>
+
+    <!-- Filtros -->
+    <form method="get" class="row g-3 mb-4">
+        <div class="col-md-3">
+            <label for="fecha_inicio" class="form-label">Fecha inicio</label>
+            <input type="date" id="fecha_inicio" name="fecha_inicio" class="form-control" value="{{ fecha_inicio }}">
+        </div>
+        <div class="col-md-3">
+            <label for="fecha_fin" class="form-label">Fecha fin</label>
+            <input type="date" id="fecha_fin" name="fecha_fin" class="form-control" value="{{ fecha_fin }}">
+        </div>
+        <div class="col-md-3">
+            <label for="laboratorio" class="form-label">Laboratorio</label>
+            <select id="laboratorio" name="laboratorio" class="form-select">
+                <option value="">Todos</option>
+                {% for cod, nombre in laboratorios_choices %}
+                    <option value="{{ cod }}" {% if laboratorio_seleccionado == cod %}selected{% endif %}>{{ nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label for="docente" class="form-label">Docente</label>
+            <select id="docente" name="docente" class="form-select">
+                <option value="">Todos</option>
+                {% for d in docentes %}
+                    <option value="{{ d.id }}" {% if docente_seleccionado == d.id %}selected{% endif %}>{{ d.nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-12 text-end">
+            <button type="submit" class="btn btn-primary mt-2">Filtrar</button>
+        </div>
+    </form>
+
+    <!-- Botones de exportación -->
+    <div class="mb-4 d-flex justify-content-end gap-2">
+        <a href="{% url 'exportar_reporte_excel' %}" class="btn btn-success">Exportar a Excel</a>
+        <a href="{% url 'exportar_reporte_pdf' %}" class="btn btn-danger">Exportar a PDF</a>
+    </div>
+
+    <!-- Panel de estadísticas -->
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3 mb-5">
+        {% for lab, stats in estadisticas_laboratorios.items %}
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">{{ lab }}</h5>
+                    <p><strong>Registros:</strong> {{ stats.registros }}</p>
+                    <p><strong>Horas programadas:</strong> {{ stats.horas_programadas }}</p>
+                    <p><strong>Horas cumplidas:</strong> {{ stats.horas_cumplidas }}</p>
+                    <p><strong>% Cumplimiento:</strong> {{ stats.porcentaje_cumplimiento|floatformat:1 }}%</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Tabla de registros -->
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>Fecha</th>
+                    <th>Laboratorio</th>
+                    <th>Grupo</th>
+                    <th>Docente</th>
+                    <th>Materia</th>
+                    <th>Carrera</th>
+                    <th>Unidad</th>
+                    <th>Tema</th>
+                    <th>Horas programadas</th>
+                    <th>Horas cumplidas</th>
+                    <th>% Cumplimiento</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in registros %}
+                <tr>
+                    <td>{{ r.fecha }}</td>
+                    <td>{{ r.get_laboratorio_display }}</td>
+                    <td>{{ r.grupo }}</td>
+                    <td>{{ r.docente.nombre }}</td>
+                    <td>{{ r.materia }}</td>
+                    <td>{{ r.carrera }}</td>
+                    <td>{{ r.unidad }}</td>
+                    <td>{{ r.tema }}</td>
+                    <td>{{ r.horas_programadas }}</td>
+                    <td>{{ r.horas_cumplidas }}</td>
+                    <td>{{ r.porcentaje_cumplimiento|floatformat:1 }}%</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="11" class="text-center">No se encontraron registros.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

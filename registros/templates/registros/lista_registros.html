@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <a href="{% url 'logout' %}">Cerrar sesión</a>
+
+    <meta charset="UTF-8">
+    <title>Lista de registros</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ccc;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        h1 {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Lista de registros</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Grupo</th>
+                <th>Estudiantes</th>
+                <th>Docente</th>
+                <th>Materia</th>
+                <th>Carrera</th>
+                <th>Unidad</th>
+                <th>Tema</th>
+                <th>Horas programadas</th>
+                <th>Horas cumplidas</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for registro in registros %}
+            <tr>
+                <td>{{ registro.fecha }}</td>
+                <td>{{ registro.grupo }}</td>
+                <td>{{ registro.numero_estudiantes }}</td>
+                <td>{{ registro.docente.nombre }}</td>
+                <td>{{ registro.materia }}</td>
+                <td>{{ registro.carrera }}</td>
+                <td>{{ registro.unidad }}</td>
+                <td>{{ registro.tema }}</td>
+                <td>{{ registro.horas_programadas }}</td>
+                <td>{{ registro.horas_cumplidas }}</td>
+                <td class="acciones">
+                    <a href="{% url 'editar_registro' registro.pk %}" class="editar">Editar</a>
+                    <a href="{% url 'eliminar_registro' registro.pk %}" class="eliminar" onclick="return confirm('¿Estás segura de eliminar este registro?');">Eliminar</a>
+                </td>
+                
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="10">No hay registros disponibles.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

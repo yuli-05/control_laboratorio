@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Reporte de uso de laboratorio</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Docente</th>
+                <th>Laboratorio</th>
+                <th>Carrera</th>
+                <th>Materia</th>
+                <th>Grupo</th>
+                <th>Unidad</th>
+                <th>Tema</th>
+                <th>Horas Programadas</th>
+                <th>Horas Cumplidas</th>
+                <th>% Cumplimiento</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in registros %}
+            <tr>
+                <td>{{ r.fecha }}</td>
+                <td>{{ r.docente }}</td>
+                <td>{{ r.laboratorio }}</td>
+                <td>{{ r.carrera }}</td>
+                <td>{{ r.materia }}</td>
+                <td>{{ r.grupo }}</td>
+                <td>{{ r.unidad }}</td>
+                <td>{{ r.tema }}</td>
+                <td>{{ r.horas_programadas }}</td>
+                <td>{{ r.horas_cumplidas }}</td>
+                <td>{{ r.porcentaje_cumplimiento|floatformat:2 }}%</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

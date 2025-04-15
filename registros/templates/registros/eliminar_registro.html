@@ -1,0 +1,7 @@
+<h2>¿Estás segura de que deseas eliminar este registro?</h2>
+<p>{{ registro }}</p>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit">Sí, eliminar</button>
+</form>
+<a href="{% url 'lista_registros' %}">Cancelar</a>

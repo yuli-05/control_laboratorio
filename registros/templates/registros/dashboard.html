@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Dashboard de Uso de Laboratorios</h2>
+
+    <!-- Indicadores (KPI) -->
+    <div class="row text-center mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5>Total Docentes</h5>
+                    <h3>{{ total_docentes }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5>Registros</h5>
+                    <h3>{{ total_registros }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark">
+                <div class="card-body">
+                    <h5>Horas Programadas</h5>
+                    <h3>{{ total_horas_programadas }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h5>Horas Cumplidas</h5>
+                    <h3>{{ total_horas_cumplidas }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Porcentaje de cumplimiento -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card border-success">
+                <div class="card-body">
+                    <h5 class="card-title">Porcentaje General de Cumplimiento</h5>
+                    <p class="card-text display-6">{{ porcentaje_cumplimiento }}%</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Accesos rápidos -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <a href="{% url 'registro_uso_laboratorio' %}" class="btn btn-outline-primary btn-block w-100">➕ Agregar Registro</a>
+        </div>
+        <div class="col-md-3">
+            <a href="{% url 'lista_docentes' %}" class="btn btn-outline-secondary btn-block w-100">👨‍🏫 Ver Docentes</a>
+        </div>
+        <div class="col-md-3">
+            <a href="{% url 'reportes' %}" class="btn btn-outline-success btn-block w-100">📊 Ver Reportes</a>
+        </div>
+        
+    </div>
+
+    <!-- Gráfica de registros por laboratorio -->
+    <div class="row mb-4">
+        <div class="col">
+            <canvas id="graficaLabs"></canvas>
+        </div>
+    </div>
+
+    <!-- Cumplimiento por laboratorio -->
+    <h4>Cumplimiento por Laboratorio</h4>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Laboratorio</th>
+                <th>Horas Programadas</th>
+                <th>Horas Cumplidas</th>
+                <th>Porcentaje</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in cumplimiento_labs %}
+            <tr>
+                <td>{{ item.laboratorio }}</td>
+                <td>{{ item.horas_programadas }}</td>
+                <td>{{ item.horas_cumplidas }}</td>
+                <td>{{ item.porcentaje|floatformat:2 }}%</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Cumplimiento por carrera -->
+    <h4>Cumplimiento por Carrera</h4>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Carrera</th>
+                <th>Horas Programadas</th>
+                <th>Horas Cumplidas</th>
+                <th>Porcentaje</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in cumplimiento_carreras %}
+            <tr>
+                <td>{{ item.carrera }}</td>
+                <td>{{ item.horas_programadas }}</td>
+                <td>{{ item.horas_cumplidas }}</td>
+                <td>{{ item.porcentaje|floatformat:2 }}%</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Últimos registros -->
+    <h4>Últimos Registros</h4>
+    <ul class="list-group mb-5">
+        {% for registro in ultimos_registros %}
+        <li class="list-group-item">
+            {{ registro.fecha }} - {{ registro.docente.nombre }} - {{ registro.laboratorio }} - {{ registro.materia }} - {{ registro.horas_cumplidas }} hrs
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+
+<!-- Script para gráfica -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('graficaLabs').getContext('2d');
+    const graficaLabs = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: {{ labels_labs|safe }},
+            datasets: [{
+                label: 'Registros por Laboratorio',
+                data: {{ data_labs|safe }},
+                backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
