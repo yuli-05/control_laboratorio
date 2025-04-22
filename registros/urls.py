@@ -27,4 +27,5 @@ urlpatterns = [
         views.registros_por_laboratorio,
         name='registros_por_laboratorio'
     ),
+
 ]

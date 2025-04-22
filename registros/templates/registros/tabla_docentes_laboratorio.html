@@ -11,14 +11,14 @@
             </tr>
         </thead>
         <tbody>
-            {% for row in resumen %}
+            {% for r in resumenes %}
             <tr>
-                <td>{{ row.docente__nombre }}</td>
-                <td>{{ row.carrera }}</td>
-                <td>{{ row.grupo }}</td>
-                <td>{{ row.horas_programadas }}</td>
-                <td>{{ row.horas_cumplidas }}</td>
-                <td>{{ row.porcentaje|floatformat:1 }}%</td>
+                <td>{{ r.docente__nombre }}</td>
+                <td>{{ r.carrera }}</td>
+                <td>{{ r.grupo }}</td>
+                <td>{{ r.horas_programadas }}</td>
+                <td>{{ r.horas_cumplidas }}</td>
+                <td>{{ r.porcentaje_cumplimiento|floatformat:1 }}%</td>
             </tr>
             {% empty %}
             <tr>
@@ -28,3 +28,26 @@
         </tbody>
     </table>
 </div>
+
+<!-- controles de paginación -->
+<nav aria-label="Page navigation">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="#" data-page="{{ page_obj.previous_page_number }}">« Anterior</a>
+        </li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+        <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+            <a class="page-link" href="#" data-page="{{ num }}">{{ num }}</a>
+        </li>
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="#" data-page="{{ page_obj.next_page_number }}">Siguiente »</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>

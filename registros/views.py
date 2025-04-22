@@ -5,6 +5,8 @@ from django.http import HttpResponse, JsonResponse
 from django.template.loader import get_template, render_to_string
 from django.utils.dateparse import parse_date
 from django.db.models import Sum, Count, F, FloatField, ExpressionWrapper
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+
 
 from openpyxl import Workbook
 from xhtml2pdf import pisa
@@ -245,45 +247,63 @@ def registros_por_laboratorio(request, lab_id):
         else:
             r.porcentaje_cumplimiento = 0
 
-    return render(request, "registros/tabla_registros_parcial.html", {"registros": registros})
+
+    # 3) Configura Paginator: 10 registros por página
+    paginator = Paginator(registros, 10)
+    page_number = request.GET.get('page')  # viene en la querystring
+    try:
+        page_obj = paginator.page(page_number)
+    except PageNotAnInteger:
+        page_obj = paginator.page(1)
+    except EmptyPage:
+        page_obj = paginator.page(paginator.num_pages)
+
+
+    # 4) Renderiza el partial con el page_obj
+    return render(request, "registros/tabla_registros_parcial.html", {"registros": page_obj})
+
+
 
 
 def registros_por_laboratorio_docentes(request, lab_id):
-    # 1) Filtramos SOLO este laboratorio
-    qs = RegistroUsoLaboratorio.objects.filter(laboratorio=lab_id)
-
-    # 2) Aplicamos mismos filtros GET si los quisieras:
+    # 1️⃣ Filtramos por laboratorio y filtros GET
+    registros = RegistroUsoLaboratorio.objects.filter(laboratorio=lab_id)
     filtros = {
-        'fecha__gte': request.GET.get('fecha_inicio'),
-        'fecha__lte': request.GET.get('fecha_fin'),
-        'docente_id': request.GET.get('docente'),
-        'carrera': request.GET.get('carrera'),
-        'materia': request.GET.get('materia'),
+        'fecha__gte': request.GET.get("fecha_inicio"),
+        'fecha__lte': request.GET.get("fecha_fin"),
+        'docente_id': request.GET.get("docente"),
+        'carrera': request.GET.get("carrera"),
+        'materia': request.GET.get("materia"),
     }
+    # limpiamos vacíos
     filtros = {k: v for k, v in filtros.items() if v}
-    qs = qs.filter(**filtros)
+    registros = registros.filter(**filtros)
 
-    # 3) Agrupamos por docente–carrera–grupo y sumamos horas
-    resumen = (
-        qs
-        .values('docente__nombre', 'carrera', 'grupo')
-        .annotate(
-            horas_programadas=Sum('horas_programadas'),
-            horas_cumplidas=Sum('horas_cumplidas'),
+    # 2️⃣ Agrupamos por docente, carrera y grupo y sumamos horas
+    resumen = registros.values(
+        'docente__nombre',
+        'carrera',
+        'grupo'
+    ).annotate(
+        horas_programadas=Sum('horas_programadas'),
+        horas_cumplidas=Sum('horas_cumplidas'),
+    ).annotate(
+        porcentaje_cumplimiento=ExpressionWrapper(
+            F('horas_cumplidas') * 100.0 / F('horas_programadas'),
+            output_field=FloatField()
         )
-        .annotate(
-            porcentaje=ExpressionWrapper(
-                F('horas_cumplidas') * 100.0 / F('horas_programadas'),
-                output_field=FloatField()
-            )
-        )
-    )
+    ).order_by('docente__nombre')
 
-    return render(
-        request,
-        'registros/tabla_docentes_laboratorio.html',
-        {'resumen': resumen}
-    )
+    # 3️⃣ Paginación idéntica a “Ver registros”
+    paginator = Paginator(resumen, 5)            # 5 filas por página
+    page_num = request.GET.get('page')
+    page_obj = paginator.get_page(page_num)
+
+    return render(request,'registros/tabla_docentes_laboratorio.html',
+                {
+                    'resumenes': page_obj,     # la página actual
+                    'page_obj': page_obj,
+                })
 
 
 
