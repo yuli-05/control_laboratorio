@@ -248,6 +248,45 @@ def registros_por_laboratorio(request, lab_id):
     return render(request, "registros/tabla_registros_parcial.html", {"registros": registros})
 
 
+def registros_por_laboratorio_docentes(request, lab_id):
+    # 1) Filtramos SOLO este laboratorio
+    qs = RegistroUsoLaboratorio.objects.filter(laboratorio=lab_id)
+
+    # 2) Aplicamos mismos filtros GET si los quisieras:
+    filtros = {
+        'fecha__gte': request.GET.get('fecha_inicio'),
+        'fecha__lte': request.GET.get('fecha_fin'),
+        'docente_id': request.GET.get('docente'),
+        'carrera': request.GET.get('carrera'),
+        'materia': request.GET.get('materia'),
+    }
+    filtros = {k: v for k, v in filtros.items() if v}
+    qs = qs.filter(**filtros)
+
+    # 3) Agrupamos por docente–carrera–grupo y sumamos horas
+    resumen = (
+        qs
+        .values('docente__nombre', 'carrera', 'grupo')
+        .annotate(
+            horas_programadas=Sum('horas_programadas'),
+            horas_cumplidas=Sum('horas_cumplidas'),
+        )
+        .annotate(
+            porcentaje=ExpressionWrapper(
+                F('horas_cumplidas') * 100.0 / F('horas_programadas'),
+                output_field=FloatField()
+            )
+        )
+    )
+
+    return render(
+        request,
+        'registros/tabla_docentes_laboratorio.html',
+        {'resumen': resumen}
+    )
+
+
+
 def registros_filtrados_ajax(request):
     registros = RegistroUsoLaboratorio.objects.all()
 
@@ -268,6 +307,8 @@ def registros_filtrados_ajax(request):
     )
 
     return render(request, 'tabla_registros_parcial.html', {'registros': registros})
+
+
 
 
 def cargar_registros_por_laboratorio(request):

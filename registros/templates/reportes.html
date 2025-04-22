@@ -107,60 +107,77 @@
                     data-lab-id="{{ est.codigo }}">
                 Ver registros
             </button>
+
+            <button class="btn btn-outline-secondary ver-docentes-btn ms-2"
+                    data-lab-id="{{ est.codigo }}">
+                Ver por docente
+            </button>
+
+
             </div>
         </div>
         {% endfor %}
     </div>
 
-    <!-- TABLA DE REGISTROS AJAX -->
-    <div id="tabla-registros-laboratorio" class="table-responsive mb-5">
-        <!-- Aquí se inyecta la tabla parcial -->
+    <<!-- Tabla general por laboratorio -->
+    <div id="tabla-registros-laboratorio" class="mt-4"></div>
+
+    <!-- Tabla por docente -->
+    <div id="tabla-docentes-laboratorio" class="mt-4"></div>
+
     </div>
-    </div>
+
 
     <script>
-    // Construye cadena de query params según los filtros actuales
-    function construirQueryParams() {
-        const campos = ['fecha_inicio','fecha_fin','docente','carrera','materia','laboratorio'];
-        const params = new URLSearchParams();
-        campos.forEach(name => {
-        const el = document.querySelector(`[name="${name}"]`);
-        if (el && el.value) {
-            params.set(name, el.value);
-        }
-        });
-        return params.toString();
-    }
-
-    // Exportar Excel
-    document.getElementById('exportar-excel').addEventListener('click', () => {
-        const q = construirQueryParams();
-        window.location.href = `/reportes/exportar_excel/?${q}`;
-    });
-
-    // Exportar PDF
-    document.getElementById('exportar-pdf').addEventListener('click', () => {
-        const q = construirQueryParams();
-        window.location.href = `/reportes/exportar_pdf/?${q}`;
-    });
-
-    // Al hacer clic en "Ver registros" de cada tarjeta
-    document.querySelectorAll('.ver-registros-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-        const labId = btn.dataset.labId;
-        // Setea el filtro de laboratorio en el <select>
-        document.querySelector('[name="laboratorio"]').value = labId;
-        const q = construirQueryParams();
-
-        fetch(`/registros_por_laboratorio/${labId}/?${q}`)
-            .then(r => r.text())
-            .then(html => {
-            document.getElementById('tabla-registros-laboratorio').innerHTML = html;
-            // Scroll suave hasta la tabla
-            const top = document.getElementById('tabla-registros-laboratorio').offsetTop - 80;
-            window.scrollTo({ top, behavior: 'smooth' });
+        document.addEventListener("DOMContentLoaded", function () {
+          // función auxiliar para leer filtros
+          function getQueryParams() {
+            const params = new URLSearchParams();
+            ['fecha_inicio','fecha_fin','docente','carrera','materia'].forEach(name => {
+              const el = document.querySelector(`[name="${name}"]`);
+              if (el && el.value) params.append(name, el.value);
             });
+            return params.toString();
+          }
+        
+          // -------- Ver registros por laboratorio --------
+          document.querySelectorAll(".ver-registros-btn").forEach(btn => {
+            btn.addEventListener("click", function () {
+              const labId = this.dataset.labId;
+              const qs    = getQueryParams();
+              fetch(`/registros_por_laboratorio/${labId}/?${qs}`)
+                .then(resp => resp.ok ? resp.text() : Promise.reject(resp.statusText))
+                .then(html => {
+                  document.getElementById("tabla-registros-laboratorio").innerHTML = html;
+                  window.scrollTo({
+                    top: document.getElementById("tabla-registros-laboratorio").offsetTop - 80,
+                    behavior: 'smooth'
+                  });
+                })
+                .catch(err => console.error("Error al cargar registros:", err));
+            });
+          });
+        
+          // -------- Ver tabla de docentes por laboratorio --------
+          document.querySelectorAll(".ver-docentes-btn").forEach(btn => {
+            btn.addEventListener("click", function () {
+              const labId = this.dataset.labId;
+              const qs    = getQueryParams();
+              fetch(`/registros_por_laboratorio/${labId}/docentes/?${qs}`)
+                .then(resp => resp.ok ? resp.text() : Promise.reject(resp.statusText))
+                .then(html => {
+                  document.getElementById("tabla-docentes-laboratorio").innerHTML = html;
+                  window.scrollTo({
+                    top: document.getElementById("tabla-docentes-laboratorio").offsetTop - 80,
+                    behavior: 'smooth'
+                  });
+                })
+                .catch(err => console.error("Error al cargar tabla de docentes:", err));
+            });
+          });
         });
-    });
-    </script>
+        </script>
+        
+        
+            
 {% endblock %}
