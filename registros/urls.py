@@ -13,5 +13,13 @@ urlpatterns = [
     path('reportes/', views.vista_reportes, name='reportes'),
     path('reportes/exportar_excel/', views.exportar_reporte_excel, name='exportar_reporte_excel'),
     path('reportes/exportar_pdf/', views.exportar_reporte_pdf, name='exportar_reporte_pdf'),
+    #path('registros_por_laboratorio/<str:lab_id>/', views.registros_por_laboratorio, name='registros_por_laboratorio'),
+    #path('registros_por_laboratorio/<int:lab_id>/', views.registros_por_laboratorio, name='registros_por_laboratorio'),
+    path('registros_filtrados_ajax/', views.registros_filtrados_ajax, name='registros_filtrados_ajax'),
+    path('cargar_registros_por_laboratorio/', views.cargar_registros_por_laboratorio, name='cargar_registros_por_laboratorio'),
+
+
+
+
 
 ]

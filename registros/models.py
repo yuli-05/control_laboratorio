@@ -43,3 +43,17 @@ class Laboratorio(models.Model):
 
     def __str__(self):
         return self.nombre
+
+
+class Carrera(models.Model):
+    nombre = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.nombre
+
+
+class Materia(models.Model):
+    nombre = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.nombre
