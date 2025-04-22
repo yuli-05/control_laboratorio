@@ -6,137 +6,161 @@
     <h2 class="mb-4">📊 Reporte de uso de laboratorios</h2>
 
     <!-- FILTROS -->
-    <form method="GET" class="card p-3 mb-4 shadow-sm">
+    <form method="GET" class="card p-3 mb-4 shadow-sm" id="filtros-form">
         <div class="row g-3">
-            <div class="col-md-3">
-                <label>Fecha inicio</label>
-                <input type="date" name="fecha_inicio" class="form-control" value="{{ fecha_inicio }}">
-            </div>
-            <div class="col-md-3">
-                <label>Fecha fin</label>
-                <input type="date" name="fecha_fin" class="form-control" value="{{ fecha_fin }}">
-            </div>
-            <div class="col-md-3">
-                <label>Laboratorio</label>
-                <select name="laboratorio" class="form-select">
-                    <option value="">Todos</option>
-                    {% for codigo, nombre in laboratorios_choices %}
-                        <option value="{{ codigo }}" {% if laboratorio_seleccionado == codigo %}selected{% endif %}>
-                            {{ nombre }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-md-3">
-                <label>Docente</label>
-                <select name="docente" class="form-select">
-                    <option value="">Todos</option>
-                    {% for d in docentes %}
-                        <option value="{{ d.id }}" {% if docente_seleccionado == d.id %}selected{% endif %}>
-                            {{ d.nombre }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-md-3">
-                <label>Carrera</label>
-                <select name="carrera" class="form-select">
-                    <option value="">Todas</option>
-                    {% for c in carreras %}
-                        <option value="{{ c }}" {% if carrera_seleccionada == c %}selected{% endif %}>
-                            {{ c }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-md-3">
-                <label>Materia</label>
-                <select name="materia" class="form-select">
-                    <option value="">Todas</option>
-                    {% for m in materias %}
-                        <option value="{{ m }}" {% if materia_seleccionada == m %}selected{% endif %}>
-                            {{ m }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
+        <div class="col-md-3">
+            <label for="fecha_inicio" class="form-label">Fecha inicio</label>
+            <input type="date" id="fecha_inicio" name="fecha_inicio" class="form-control"
+                value="{{ request.GET.fecha_inicio }}">
+        </div>
+        <div class="col-md-3">
+            <label for="fecha_fin" class="form-label">Fecha fin</label>
+            <input type="date" id="fecha_fin" name="fecha_fin" class="form-control"
+                value="{{ request.GET.fecha_fin }}">
+        </div>
+        <div class="col-md-3">
+            <label for="laboratorio" class="form-label">Laboratorio</label>
+            <select id="laboratorio" name="laboratorio" class="form-select">
+            <option value="">-- Todos --</option>
+            {% for codigo, nombre in laboratorios_choices %}
+                <option value="{{ codigo }}"
+                {% if laboratorio_seleccionado == codigo %}selected{% endif %}>
+                {{ nombre }}
+                </option>
+            {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label for="docente" class="form-label">Docente</label>
+            <select id="docente" name="docente" class="form-select">
+            <option value="">Todos</option>
+            {% for d in docentes %}
+                <option value="{{ d.id }}"
+                {% if docente_seleccionado == d.id %}selected{% endif %}>
+                {{ d.nombre }}
+                </option>
+            {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label for="carrera" class="form-label">Carrera</label>
+            <select id="carrera" name="carrera" class="form-select">
+            <option value="">Todas</option>
+            {% for c in carreras %}
+                <option value="{{ c }}"
+                {% if carrera_seleccionada == c %}selected{% endif %}>
+                {{ c }}
+                </option>
+            {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label for="materia" class="form-label">Materia</label>
+            <select id="materia" name="materia" class="form-select">
+            <option value="">Todas</option>
+            {% for m in materias %}
+                <option value="{{ m }}"
+                {% if materia_seleccionada == m %}selected{% endif %}>
+                {{ m }}
+                </option>
+            {% endfor %}
+            </select>
+        </div>
         </div>
         <div class="mt-3 text-end">
-            <button type="submit" class="btn btn-primary">
-                <i class="bi bi-funnel-fill"></i> Filtrar
-            </button>
-            <a href="{% url 'exportar_reporte_excel' %}?{{ request.GET.urlencode }}" class="btn btn-success ms-2">
-                <i class="bi bi-file-earmark-excel-fill"></i> Excel
-            </a>
-            <a href="{% url 'exportar_reporte_pdf' %}?{{ request.GET.urlencode }}" class="btn btn-danger ms-2">
-                <i class="bi bi-file-earmark-pdf-fill"></i> PDF
-            </a>
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-funnel-fill me-1"></i> Filtrar
+        </button>
         </div>
     </form>
 
-        <!-- ESTADÍSTICAS POR LABORATORIO -->
-    <div class="row row-cols-1 row-cols-md-3 g-4 mt-4">
+    <!-- BOTONES DE EXPORTACIÓN -->
+    <div class="mb-4 d-flex gap-2">
+        <button id="exportar-excel" class="btn btn-success">
+        <i class="bi bi-file-earmark-excel-fill me-1"></i> Exportar a Excel
+        </button>
+        <button id="exportar-pdf" class="btn btn-danger">
+        <i class="bi bi-file-earmark-pdf-fill me-1"></i> Exportar a PDF
+        </button>
+    </div>
+
+    <!-- ESTADÍSTICAS POR LABORATORIO -->
+    <div class="row row-cols-1 row-cols-md-3 g-4 mb-4">
         {% for est in estadisticas_laboratorios %}
-        <div class="col">
-            <div class="card h-100 shadow-sm">
+        <div class="card shadow-sm">
             <div class="card-body">
-                <h5 class="card-title">{{ est.laboratorio }}</h5>
-                <ul class="list-unstyled mb-2">
-                <li><strong>Registros:</strong> {{ est.registros }}</li>
-                <li><strong>Horas programadas:</strong> {{ est.horas_programadas }}</li>
-                <li><strong>Horas cumplidas:</strong> {{ est.horas_cumplidas }}</li>
-                <li><strong>% Cumplimiento:</strong> {{ est.porcentaje }}%</li>
-                </ul>
-                <div class="progress mb-3">
-                <div class="progress-bar bg-success" style="width: {{ est.porcentaje }}%;" role="progressbar"
-                    aria-valuenow="{{ est.porcentaje }}" aria-valuemin="0" aria-valuemax="100">
+            <h5 class="card-title">{{ est.laboratorio }}</h5>
+            <p class="mb-1"><strong>Registros:</strong> {{ est.registros }}</p>
+            <p class="mb-1"><strong>Horas programadas:</strong> {{ est.horas_programadas }}</p>
+            <p class="mb-1"><strong>Horas cumplidas:</strong> {{ est.horas_cumplidas }}</p>
+            <p class="mb-2"><strong>% Cumplimiento:</strong> {{ est.porcentaje|floatformat:1 }}%</p>
+            <div class="progress mb-3">
+                <div class="progress-bar bg-success"
+                    role="progressbar"
+                    style="width: {{ est.porcentaje }}%;"
+                    aria-valuenow="{{ est.porcentaje }}"
+                    aria-valuemin="0"
+                    aria-valuemax="100">
                 </div>
-                </div>
-                <button type="button" class="btn btn-outline-primary ver-registros-btn" data-lab-id="{{ est.codigo }}">
-                Ver registros
-                </button>
             </div>
+            <button class="btn btn-outline-primary ver-registros-btn"
+                    data-lab-id="{{ est.codigo }}">
+                Ver registros
+            </button>
             </div>
         </div>
         {% endfor %}
     </div>
-    
-    <!-- CONTENEDOR PARA LA TABLA AJAX -->
-    <div id="tabla-registros-laboratorio" class="mt-5"></div>
-    
-    <!-- SCRIPT PARA CARGAR LA TABLA CON FILTROS -->
+
+    <!-- TABLA DE REGISTROS AJAX -->
+    <div id="tabla-registros-laboratorio" class="table-responsive mb-5">
+        <!-- Aquí se inyecta la tabla parcial -->
+    </div>
+    </div>
+
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-        const botones = document.querySelectorAll(".ver-registros-btn");
-        botones.forEach(boton => {
-            boton.addEventListener("click", function () {
-            const labId = this.dataset.labId;
-    
-            const params = new URLSearchParams();
-            const filtros = ['fecha_inicio', 'fecha_fin', 'docente', 'carrera', 'materia'];
-            filtros.forEach(filtro => {
-                const valor = document.querySelector(`[name="${filtro}"]`)?.value;
-                if (valor) {
-                params.append(filtro, valor);
-                }
-            });
-    
-            fetch(`/registros_por_laboratorio/${labId}/?${params.toString()}`)
-                .then(response => response.text())
-                .then(html => {
-                const contenedor = document.getElementById("tabla-registros-laboratorio");
-                contenedor.innerHTML = html;
-                window.scrollTo({
-                    top: contenedor.offsetTop - 100,
-                    behavior: 'smooth'
-                });
-                })
-                .catch(error => {
-                console.error("Error al cargar registros:", error);
-                });
+    // Construye cadena de query params según los filtros actuales
+    function construirQueryParams() {
+        const campos = ['fecha_inicio','fecha_fin','docente','carrera','materia','laboratorio'];
+        const params = new URLSearchParams();
+        campos.forEach(name => {
+        const el = document.querySelector(`[name="${name}"]`);
+        if (el && el.value) {
+            params.set(name, el.value);
+        }
+        });
+        return params.toString();
+    }
+
+    // Exportar Excel
+    document.getElementById('exportar-excel').addEventListener('click', () => {
+        const q = construirQueryParams();
+        window.location.href = `/reportes/exportar_excel/?${q}`;
+    });
+
+    // Exportar PDF
+    document.getElementById('exportar-pdf').addEventListener('click', () => {
+        const q = construirQueryParams();
+        window.location.href = `/reportes/exportar_pdf/?${q}`;
+    });
+
+    // Al hacer clic en "Ver registros" de cada tarjeta
+    document.querySelectorAll('.ver-registros-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+        const labId = btn.dataset.labId;
+        // Setea el filtro de laboratorio en el <select>
+        document.querySelector('[name="laboratorio"]').value = labId;
+        const q = construirQueryParams();
+
+        fetch(`/registros_por_laboratorio/${labId}/?${q}`)
+            .then(r => r.text())
+            .then(html => {
+            document.getElementById('tabla-registros-laboratorio').innerHTML = html;
+            // Scroll suave hasta la tabla
+            const top = document.getElementById('tabla-registros-laboratorio').offsetTop - 80;
+            window.scrollTo({ top, behavior: 'smooth' });
             });
         });
-        });
+    });
     </script>
-    
 {% endblock %}
