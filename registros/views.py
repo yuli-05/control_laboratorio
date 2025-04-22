@@ -100,20 +100,25 @@ def vista_reportes(request):
     if materia:
         registros = registros.filter(materia=materia)
 
+    # Calcular porcentaje de cumplimiento por registro
     for r in registros:
-        r.porcentaje_cumplimiento = (r.horas_cumplidas / r.horas_programadas * 100) if r.horas_programadas else 0
+        if r.horas_programadas:
+            r.porcentaje_cumplimiento = (r.horas_cumplidas / r.horas_programadas) * 100
+        else:
+            r.porcentaje_cumplimiento = 0
 
+    # Estadísticas por laboratorio
     estadisticas_laboratorios = []
     for codigo_lab, nombre_lab in RegistroUsoLaboratorio.LABORATORIOS:
-        registros_filtrados = registros.filter(laboratorio=codigo_lab)
-        total_registros = registros_filtrados.count()
-        horas_programadas = sum(r.horas_programadas for r in registros_filtrados)
-        horas_cumplidas = sum(r.horas_cumplidas for r in registros_filtrados)
-        porcentaje = (horas_cumplidas / horas_programadas * 100) if horas_programadas else 0
+        registros_lab = registros.filter(laboratorio=codigo_lab)
+        total_registros = registros_lab.count()
+        horas_programadas = sum(r.horas_programadas for r in registros_lab)
+        horas_cumplidas = sum(r.horas_cumplidas for r in registros_lab)
+        porcentaje = (horas_cumplidas / horas_programadas) * 100 if horas_programadas > 0 else 0
 
         estadisticas_laboratorios.append({
             'codigo': codigo_lab,
-            'laboratorio': laboratorio,
+            'laboratorio': nombre_lab,
             'registros': total_registros,
             'horas_programadas': horas_programadas,
             'horas_cumplidas': horas_cumplidas,
@@ -217,8 +222,8 @@ def exportar_reporte_pdf(request):
     return response
 
 
-def registros_por_laboratorio(request, lab_id):
-    registros = RegistroUsoLaboratorio.objects.filter(laboratorio_id=lab_id)
+def registros_por_laboratorio(request, lab_id): 
+    registros = RegistroUsoLaboratorio.objects.filter(laboratorio=lab_id)
 
     filtros = {
         'fecha__gte': request.GET.get("fecha_inicio"),
@@ -226,9 +231,19 @@ def registros_por_laboratorio(request, lab_id):
         'docente_id': request.GET.get("docente"),
         'carrera': request.GET.get("carrera"),
         'materia': request.GET.get("materia")
-    }
+    }   
+
+
+    # Quitar filtros vacíos
     filtros = {k: v for k, v in filtros.items() if v}
     registros = registros.filter(**filtros)
+
+    # Calcular porcentaje
+    for r in registros:
+        if r.horas_programadas:
+            r.porcentaje_cumplimiento = (r.horas_cumplidas / r.horas_programadas) * 100
+        else:
+            r.porcentaje_cumplimiento = 0
 
     return render(request, "registros/tabla_registros_parcial.html", {"registros": registros})
 
